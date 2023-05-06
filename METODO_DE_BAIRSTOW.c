@@ -1,14 +1,11 @@
-﻿//
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
-float* bairstow (int n, float *a, float *b, float *db, float e_a, int ni, 
-float r, float s);
+float* bairstow (int n, float *a, float *b, float *db, float e_a, int ni,  float r, float s);
 
-float* bairstow (int n, float *a, float *b, float *db, float e_a, int ni, 
-float r, float s)
+float* bairstow (int n, float *a, float *b, float *db, float e_a, int ni, float r, float s)
 {
     int j;
 
@@ -16,9 +13,11 @@ float r, float s)
 
     xr = (float*) calloc(n * 4, sizeof(float));
 
+    // Asignación de valores iniciales para r y s
     vr[0] = r;
     vs[0] = s;
 
+    // Ciclo que indica la continuidad del programa de acuerdo al número máximo de iteraciones
     for( j = 0, ea = 100 ; j < ni; j++)
     {
         b[n] = a[n];
@@ -51,15 +50,18 @@ float r, float s)
         ear = fabs (dr / vr[j+1]);
         eas = fabs (ds / vs[j+1]);
 
-        ea = ear;
-
+        // Selección del error de aproximación para la iteración
         if (eas > ea)
         {
             ea = eas;
+        }else
+        {
+            ea = ear;
         }
 
         printf("\n%d. R[1] = %f\tR[0] = %f (%f)", j+1, R[1], R[0], ea);
-       
+
+        // Comprobación de la continuidad del programa por error de aproximación
         if(ea < e_a)
         {
             break;
@@ -69,6 +71,7 @@ float r, float s)
 
     printf("\n");
 
+    // Almacenamiento de los valores reales e imaginarios en el vector según la paridad
     for (int i = 0, j = 0; i < (n * 4); i+=4, j++)
     {
         raiz[j] = vr[j] * vr [j]+ 4 * vs[j];
