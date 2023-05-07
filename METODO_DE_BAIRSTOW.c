@@ -181,8 +181,7 @@ int main(int argc, const char * argv[])
 
     for(i = 0, j = 0; i < (n * 4); i+=4, j+=2)
     {
-        printf("\nxr[%d, %d] = (%f %+f i , %f %+f i)", j+1, j+2, xr[i], 
-        xr[i+1], xr[i+2], xr[i+3]);
+        printf("\nxr[%d, %d] = (%f %+f i , %f %+f i)", j+1, j+2, xr[i], xr[i+1], xr[i+2], xr[i+3]);
     }
 
     printf("\n\n");
