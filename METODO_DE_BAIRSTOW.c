@@ -1,86 +1,110 @@
-﻿#include <stdio.h>
+﻿//
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
-float* bairstow (int n, float *a, float *b, float *db, float e_a, int ni,  float r, float s);
+float* bairstow (int n, float *a, float *b, float *db, float e_a, int ni, float r, float s);
 
 float* bairstow (int n, float *a, float *b, float *db, float e_a, int ni, float r, float s)
 {
-    int j;
+    int i, j, k, l, m, o;
 
-    float R[2], vr[n], vs[n], det, dr, ds, raiz[n], ea, ear, eas, *xr;
+    float R[2], vr[ni], vs[ni], det, dr, ds, raiz[n], ea, ear, eas, *aux, *xr;
 
-    xr = (float*) calloc(n * 4, sizeof(float));
+    xr = (float*) calloc(n * 2, sizeof(float));
 
-    // Asignación de valores iniciales para r y s
-    vr[0] = r;
-    vs[0] = s;
-
-    // Ciclo que indica la continuidad del programa de acuerdo al número máximo de iteraciones
-    for( j = 0, ea = 100 ; j < ni; j++)
+    // Continuidad del programa de acuerdo al numero de raices necesarias
+    for (i = 0; i < (n * 2) ; i+=4)
     {
-        b[n] = a[n];
-        b[n-1] = a[n-1] + b[n] * vr[j];
+        // Asignacion de valores iniciales para r y s
+        vr[0] = r;
+        vs[0] = s;
 
-        for(int i = n-2; i >= -1; i--)
+        // Presicion de la raiz de acuerdo al numero maximo de iteraciones
+        for(j = 0, ea = 100 ; j < ni; j++)
         {
-            b[i] = a[i] + b[i+1] * vr[j] + b[i+2] * vs[j];
-        }
+            b[n] = a[n];
+            b[n-1] = a[n-1] + b[n] * vr[j];
 
-        R[1] = b[1]; // Lineal
-        R[0] = b[0] - b[1] * vr[j]; // Independiente
-       
-        db[n]=0;
-        db[n-1] = b[n];
+            for(k = (n - 2); k > -1; k--)
+            {
+                b[k] = a[k] + b[k+1] * vr[j] + b[k+2] * vs[j];
+            }
 
-        for(int i = n-2; i > -1; i--)
-        {
-            db[i] = db[i+1] * vr[j] + db[i+2] * vs[j] + b[i+1];
-        }
+            // Termino lineal
+            R[1] = b[1];
 
-        det = 1 / (db[2] * db[0] - db[1] * db[1]);
+            // Termino independiente
+            R[0] = b[0] - b[1] * vr[j];
         
-        dr = det * (db[1] * b[1] - db[2] * b[0]);
-        ds = det * (db[1] * b[0] - db[0] * b[1]);
+            db[n] = 0;
+            db[n - 1] = b[n];
+
+            for(l = (n - 2); l > -1; l--)
+            {
+                db[l] = db[l+1] * vr[j] + db[l+2] * vs[j] + b[l+1];
+            }
+
+            det = 1 / (db[2] * db[0] - db[1] * db[1]);
+            
+            dr = det * (db[1] * b[1] - db[2] * b[0]);
+            ds = det * (db[1] * b[0] - db[0] * b[1]);
+            
+            // Valores nuevos para r y s
+            vr[j + 1] = vr[j] + dr;
+            vs[j + 1] = vs[j] + ds;
+
+            // Calculo de los errorres de aproximacion por r y s
+            ear = fabs (dr / vr[j + 1]);
+            eas = fabs (ds / vs[j + 1]);
+
+            // Seleccion del error de aproximacion para la iteracion
+            if (eas > ea)
+            {
+                ea = eas;
+            }else
+            {
+                ea = ear;
+            }
+
+            printf("\n%d. R[1] = %f\tR[0] = %f (%f)", j+1, R[1], R[0], ea);
+
+            // Comprobacion de la continuidad del programa por error de aproximacion
+            if(ea < e_a)
+            {
+                break;
+            }
+        }
+
+        printf("\n");
+
+        // Asignacion de las raices segun sus valores reales e imaginarios en el vector segun la paridad
+        raiz[i] = vr[j] * vr [j]+ 4 * vs[j];
         
-        vr[j+1] = vr[j] + dr;
-        vs[j+1] = vs[j] + ds;
+        xr[i] = (vr[j] + (raiz[i] < 0 ? 0 : sqrt(raiz[i]))) / 2;
+        xr[i+1] = raiz[i] < 0? sqrt(-raiz[i]) / 2 : 0;
 
-        ear = fabs (dr / vr[j+1]);
-        eas = fabs (ds / vs[j+1]);
+        xr[i+2] = (vr[j] - (raiz[i] < 0 ? 0 : sqrt(raiz[i]))) / 2;
+        xr[i+3] = - xr[i+1];
 
-        // Selección del error de aproximación para la iteración
-        if (eas > ea)
+        // Intercambio de los coeficientes para el siguiente polinomio reducido
+        aux = a;
+        a = b;
+        b = aux;
+
+        // Disminucion del grado del polinomio
+        for (o = 0, m = 2; m <= n; m++, o++)
         {
-            ea = eas;
-        }else
-        {
-            ea = ear;
+            a[o] = a[m];
         }
 
-        printf("\n%d. R[1] = %f\tR[0] = %f (%f)", j+1, R[1], R[0], ea);
-
-        // Comprobación de la continuidad del programa por error de aproximación
-        if(ea < e_a)
-        {
-            break;
-        }
-
+        n -= 2;
     }
 
-    printf("\n");
-
-    // Almacenamiento de los valores reales e imaginarios en el vector según la paridad
-    for (int i = 0, j = 0; i < (n * 4); i+=4, j++)
+    if(n == 1)
     {
-        raiz[j] = vr[j] * vr [j]+ 4 * vs[j];
-        
-        xr[i] = (vr[j] + (raiz[j] < 0 ? 0 : sqrt(raiz[j]))) / 2;
-        xr[i+1] = raiz[j] < 0? sqrt(-raiz[j]) / 2 : 0;
-
-        xr[i+2] = (vr[j] - (raiz[j] < 0 ? 0 : sqrt(raiz[j]))) / 2;
-        xr[i+3] = - xr[i+1];
+        xr [i] = - a [0];
     }
 
     return xr;
@@ -142,7 +166,7 @@ int main(int argc, const char * argv[])
         return 3;
     }
 
-    xr = (float*) calloc(n * 4, sizeof(float));
+    xr = (float*) calloc(n * 2, sizeof(float));
 
     if(xr == NULL)
     {
@@ -161,27 +185,19 @@ int main(int argc, const char * argv[])
         scanf("%f", a+i); // scanf("%f", &a[i]); -> &*(a+i)
     }
 
-    do
-    {
-        printf("\nIngrese el valor inicial de r\n");
-        scanf("%f", &r);
-    }
-    while(r < 0);
+    printf("\nIngrese el valor inicial de r\n");
+    scanf("%f", &r);
 
-    do
-    {
-        printf("\nIngrese el valor inicial de s\n");
-        scanf("%f", &s);
-    }
-    while(s < 0);
+    printf("\nIngrese el valor inicial de s\n");
+    scanf("%f", &s);
     
     xr = bairstow (n, a, b, db, e_a, ni, r, s);
 
     printf("\n");
 
-    for(i = 0, j = 0; i < (n * 4); i+=4, j+=2)
+    for(i = 0, j = 0; i < (n * 2); i+=2, j++)
     {
-        printf("\nxr[%d, %d] = (%f %+f i , %f %+f i)", j+1, j+2, xr[i], xr[i+1], xr[i+2], xr[i+3]);
+        printf("\nxr[%d] = (%f %+f i)", j+1, xr[i], xr[i+1]);
     }
 
     printf("\n\n");
